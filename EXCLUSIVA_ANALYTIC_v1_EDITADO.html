@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ANALYTIC - Simulador de Financiamento</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700&family=Exo+2:wght@300;400;600&family=Montserrat:wght@300;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --preto: #0a0a14;
+            --preto-claro: #1a1a2e;
+            --vermelho: #ff2e63;
+            --vermelho-escuro: #d10047;
+            --branco: #eaeaea;
+            --azul-neon: #08d9d6;
+            --roxo-neon: #9d4edd;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--preto), var(--preto-claro));
+            color: var(--branco);
+            font-family: 'Exo 2', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+            pointer-events: none;
+        }
+
+        .particle {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: var(--branco);
+            border-radius: 50%;
+            opacity: 0.3;
+        }
+
+        .x-logo {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 40vw;
+            font-weight: 900;
+            color: rgba(255, 255, 255, 0.02);
+            z-index: -1;
+            pointer-events: none;
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 900px;
+            background: rgba(10, 10, 20, 0.7);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 46, 99, 0.2);
+            box-shadow: 0 0 40px rgba(255, 46, 99, 0.1),
+                        0 0 80px rgba(157, 78, 221, 0.05);
+            overflow: hidden;
+            position: relative;
+            z-index: 10;
+        }
+
+        .header {
+            background: linear-gradient(90deg, var(--preto-claro), rgba(255, 46, 99, 0.1));
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid rgba(255, 46, 99, 0.3);
+            position: relative;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            font-size: 2.8rem;
+            background: linear-gradient(to right, var(--azul-neon), var(--branco));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            letter-spacing: 2px;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            font-family: 'Montserrat', sans-serif;
+            color: rgba(234, 234, 234, 0.7);
+            font-size: 1.1rem;
+            margin-top: 0.5rem;
+            letter-spacing: 1px;
+        }
+
+        .tela {
+            display: none;
+            padding: 2rem;
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        .tela.ativa {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .form-group {
+            position: relative;
+            margin-bottom: 1.2rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 300;
+            color: var(--branco);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .input-container {
+            position: relative;
+        }
+
+        .input-container i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--azul-neon);
+            font-size: 1rem;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 14px 14px 14px 45px;
+            background: rgba(26, 26, 46, 0.5);
+            border: 1px solid rgba(255, 46, 99, 0.3);
+            border-radius: 10px;
+            color: var(--branco);
+            font-family: 'Exo 2', sans-serif;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--azul-neon);
+            box-shadow: 0 0 0 2px rgba(8, 217, 214, 0.2);
+            background: rgba(26, 26, 46, 0.8);
+        }
+
+        input:hover, select:hover {
+            border-color: var(--azul-neon);
+        }
+
+        button {
+            background: linear-gradient(135deg, var(--azul-neon), var(--roxo-neon));
+            color: var(--preto);
+            border: none;
+            padding: 1.2rem 2rem;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 600;
+            font-size: 1.1rem;
+            letter-spacing: 1.5px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            margin-top: 1rem;
+            width: 100%;
+            text-transform: uppercase;
+            box-shadow: 0 0 15px rgba(8, 217, 214, 0.3);
+        }
+
+        button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            transition: 0.5s;
+        }
+
+        button:hover::before {
+            left: 100%;
+        }
+
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(157, 78, 221, 0.4);
+        }
+
+        button:active {
+            transform: translateY(-1px);
+        }
+
+        .progress-container {
+            text-align: center;
+            margin: 3rem 0;
+        }
+
+        .progress-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.8rem;
+            margin-bottom: 1.5rem;
+            color: var(--branco);
+            letter-spacing: 2px;
+        }
+
+        .progress-message {
+            font-family: 'Montserrat', sans-serif;
+            color: var(--azul-neon);
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+            min-height: 2rem;
+        }
+
+        .progress-bar {
+            height: 25px;
+            background: rgba(26, 26, 46, 0.7);
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+            border: 1px solid rgba(8, 217, 214, 0.3);
+            box-shadow: 0 0 10px rgba(8, 217, 214, 0.1) inset;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--azul-neon), var(--roxo-neon));
+            width: 0%;
+            transition: width 0.5s ease;
+            position: relative;
+        }
+
+        .progress-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            animation: progressShine 2s infinite;
+        }
+
+        @keyframes progressShine {
+            0% { background-position: -200px 0; }
+            100% { background-position: 200px 0; }
+        }
+
+        .progress-value {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1rem;
+            color: var(--preto);
+            font-weight: bold;
+        }
+
+        .result-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .result-card {
+            background: rgba(26, 26, 46, 0.5);
+            border-radius: 15px;
+            padding: 1.5rem;
+            border: 1px solid rgba(8, 217, 214, 0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .result-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(8, 217, 214, 0.2);
+            border-color: var(--azul-neon);
+        }
+
+        .result-card h3 {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 500;
+            font-size: 0.9rem;
+            color: rgba(234, 234, 234, 0.7);
+            margin-bottom: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .result-card p {
+            font-family: 'Exo 2', sans-serif;
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: var(--branco);
+        }
+
+        .valor {
+            color: var(--azul-neon);
+            font-weight: 700;
+        }
+
+        .aprovacao {
+            color: var(--vermelho);
+            font-weight: 700;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 1.5rem;
+            border-top: 1px solid rgba(8, 217, 214, 0.2);
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.85rem;
+            color: rgba(234, 234, 234, 0.5);
+        }
+
+        .loading-dots::after {
+            content: '';
+            animation: dots 1.5s infinite;
+        }
+
+        @keyframes dots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60%, 100% { content: '...'; }
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.03); }
+            100% { transform: scale(1); }
+        }
+
+        .result-container {
+            animation: pulse 2s infinite;
+        }
+
+        .brand-filter {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .brand-btn {
+            background: rgba(26, 26, 46, 0.5);
+            border: 1px solid rgba(8, 217, 214, 0.3);
+            color: var(--branco);
+            padding: 8px 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+        }
+
+        .brand-btn.active, .brand-btn:hover {
+            background: linear-gradient(135deg, var(--azul-neon), var(--roxo-neon));
+            color: var(--preto);
+            border-color: transparent;
+        }
+
+        .moto-container {
+            max-height: 300px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+
+        .moto-container::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .moto-container::-webkit-scrollbar-thumb {
+            background: var(--azul-neon);
+            border-radius: 4px;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .form-grid, .result-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .tela {
+                padding: 1.5rem;
+            }
+            
+            .brand-filter {
+                flex-wrap: wrap;
+            }
+        }
+
+        .neon {
+            text-shadow: 0 0 5px var(--azul-neon), 
+                         0 0 10px var(--azul-neon), 
+                         0 0 20px var(--azul-neon);
+        }
+        
+        .analytics-icon {
+            font-size: 3rem;
+            margin-bottom: 1.5rem;
+            color: var(--azul-neon);
+            text-shadow: 0 0 10px rgba(8, 217, 214, 0.7);
+        }
+    </style>
+</head>
+<body>
+    <div class="particles" id="particles"></div>
+    <div class="x-logo">A</div>
+    
+    <div class="container">
+        <div class="header">
+            <div class="analytics-icon">
+                <i class="fas fa-chart-line"></i>
+            </div>
+            <h1>ANALYTIC</h1>
+            <p>Simulação inteligente para seu financiamento de motos</p>
+        </div>
+        
+        <!-- Tela 1: Formulário -->
+        <div id="formulario" class="tela ativa">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="nome"><i class="fas fa-user"></i> NOME COMPLETO</label>
+                    <div class="input-container">
+                        <i class="fas fa-id-card"></i>
+                        <input type="text" id="nome" placeholder="Digite seu nome completo" required>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="cpf">CPF</label>
+                    <div class="input-container">
+                        <i class="fas fa-fingerprint"></i>
+                        <input type="text" id="cpf" placeholder="000.000.000-00" required>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="moto">MOTO DESEJADA</label>
+                    <div class="brand-filter">
+                        <div class="brand-btn active" data-brand="all">TODAS</div>
+                        <div class="brand-btn" data-brand="honda">HONDA</div>
+                        <div class="brand-btn" data-brand="yamaha">YAMAHA</div>
+                        <div class="brand-btn" data-brand="shineray">SHINERAY</div>
+                    </div>
+                    <div class="input-container">
+                        <i class="fas fa-motorcycle"></i>
+                        <select id="moto" required>
+                            <option value="">Selecione o modelo</option>
+                            <!-- Honda -->
+                            <optgroup label="HONDA" class="moto-group" data-brand="honda">
+                                <option value="Honda CG 160 Cargo">Honda CG 160 Cargo</option>
+                                <option value="Honda CG 160 Fan">Honda CG 160 Fan</option>
+                                <option value="Honda CG 160 Titan">Honda CG 160 Titan</option>
+                                <option value="Honda CB 300F Twister">Honda CB 300F Twister</option>
+                                <option value="Honda CB 500F">Honda CB 500F</option>
+                                <option value="Honda CB 650R">Honda CB 650R</option>
+                                <option value="Honda CBR 500R">Honda CBR 500R</option>
+                                <option value="Honda CBR 650R">Honda CBR 650R</option>
+                                <option value="Honda CB 1000R">Honda CB 1000R</option>
+                                <option value="Honda CBR 1000RR-R Fireblade">Honda CBR 1000RR-R Fireblade</option>
+                                <option value="Honda NX 200 Bros">Honda NX 200 Bros</option>
+                                <option value="Honda XRE 190">Honda XRE 190</option>
+                                <option value="Honda XRE 300">Honda XRE 300</option>
+                                <option value="Honda CRF 1100L Africa Twin">Honda CRF 1100L Africa Twin</option>
+                                <option value="Honda PCX 160">Honda PCX 160</option>
+                                <option value="Honda Forza 350">Honda Forza 350</option>
+                            </optgroup>
+                            
+                            <!-- Yamaha -->
+                            <optgroup label="YAMAHA" class="moto-group" data-brand="yamaha">
+                                <option value="Yamaha Fazer 250">Yamaha Fazer 250</option>
+                                <option value="Yamaha Fazer 150">Yamaha Fazer 150</option>
+                                <option value="Yamaha Factor 150">Yamaha Factor 150</option>
+                                <option value="Yamaha Lander 250">Yamaha Lander 250</option>
+                                <option value="Yamaha XTZ 250 Lander">Yamaha XTZ 250 Lander</option>
+                                <option value="Yamaha MT-03">Yamaha MT-03</option>
+                                <option value="Yamaha MT-07">Yamaha MT-07</option>
+                                <option value="Yamaha MT-09">Yamaha MT-09</option>
+                                <option value="Yamaha MT-10">Yamaha MT-10</option>
+                                <option value="Yamaha YZF-R3">Yamaha YZF-R3</option>
+                                <option value="Yamaha YZF-R1">Yamaha YZF-R1</option>
+                                <option value="Yamaha YZF-R1M">Yamaha YZF-R1M</option>
+                                <option value="Yamaha Ténéré 700">Yamaha Ténéré 700</option>
+                                <option value="Yamaha XMAX 300">Yamaha XMAX 300</option>
+                                <option value="Yamaha NMAX">Yamaha NMAX</option>
+                                <option value="Yamaha XT 660">Yamaha XT 660</option>
+                            </optgroup>
+                            
+                            <!-- Shineray -->
+                            <optgroup label="SHINERAY" class="moto-group" data-brand="shineray">
+                                <option value="Shineray MX 50">Shineray MX 50</option>
+                                <option value="Shineray MX 150">Shineray MX 150</option>
+                                <option value="Shineray Storm 200">Shineray Storm 200</option>
+                                <option value="Shineray XY 200">Shineray XY 200</option>
+                                <option value="Shineray XY 250">Shineray XY 250</option>
+                                <option value="Shineray XY 400">Shineray XY 400</option>
+                                <option value="Shineray Worker 150">Shineray Worker 150</option>
+                                <option value="Shineray Worker 200">Shineray Worker 200</option>
+                                <option value="Shineray Dingo 125">Shineray Dingo 125</option>
+                                <option value="Shineray Jet 50">Shineray Jet 50</option>
+                                <option value="Shineray Shuttle 125">Shineray Shuttle 125</option>
+                                <option value="Shineray Vanguard 250">Shineray Vanguard 250</option>
+                                <option value="Shineray Stryker 150">Shineray Stryker 150</option>
+                                <option value="Shineray Crosser 150">Shineray Crosser 150</option>
+                            </optgroup>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="valor">VALOR DA MOTO (R$)</label>
+                    <div class="input-container">
+                        <i class="fas fa-tag"></i>
+                        <input type="number" id="valor" placeholder="Ex: 35.000" required min="0">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="lance">VALOR DO LANCE (R$)</label>
+                    <div class="input-container">
+                        <i class="fas fa-hand-holding-usd"></i>
+                        <input type="number" id="lance" placeholder="Ex: 10.000" required min="0">
+                    </div>
+                </div>
+                
+                
+<div class="form-group">
+    <label for="entrada">ENTRADA (R$)</label>
+    <div class="input-container">
+        <i class="fas fa-wallet"></i>
+        <input type="number" id="entrada" placeholder="Ex: 5.000" min="0">
+    </div>
+</div>
+<div class="form-group">
+    <label for="credito">CRÉDITO BRUTO (R$)</label>
+    <div class="input-container">
+        <i class="fas fa-coins"></i>
+        <input type="number" id="credito" placeholder="Ex: 30.000" min="0">
+    </div>
+</div>
+<div class="form-group">
+    <label for="parcela">VALOR DA PARCELA (R$)</label>
+    <div class="input-container">
+        <i class="fas fa-money-bill-wave"></i>
+        <input type="number" id="parcela" placeholder="Ex: 850" min="0">
+    </div>
+</div>
+
+                <div class="form-group">
+                    <label for="aprovacao">% DE APROVAÇÃO</label>
+                    <div class="input-container">
+                        <i class="fas fa-percentage"></i>
+                        <input type="number" id="aprovacao" placeholder="0 a 100" required min="0" max="100">
+                    </div>
+                </div>
+            </div>
+            
+            <button id="btn-simular">
+                <i class="fas fa-cogs"></i> SIMULAR
+            </button>
+        </div>
+        
+        <!-- Tela 2: Processamento -->
+        <div id="processamento" class="tela">
+            <div class="progress-container">
+                <h2 class="progress-title">ANALISANDO SUA PROPOSTA</h2>
+                <div class="progress-message" id="mensagem">Iniciando análise de crédito<span class="loading-dots"></span></div>
+                
+                <div class="progress-bar">
+                    <div class="progress-fill" id="barra">
+                        <div class="progress-value" id="contador">0%</div>
+                    </div>
+                </div>
+                
+                <div class="progress-message">
+                    Este processo leva apenas alguns segundos
+                </div>
+            </div>
+        </div>
+        
+        <!-- Tela 3: Resultado -->
+        <div id="resultado" class="tela">
+            <h2 class="progress-title neon">SIMULAÇÃO CONCLUÍDA!</h2>
+            <p style="text-align: center; margin-bottom: 2rem;">Confira os resultados da sua simulação</p>
+            
+            <div class="result-grid">
+                <div class="result-card">
+                    <h3><i class="fas fa-user"></i> NOME</h3>
+                    <p id="res-nome">-</p>
+                </div>
+                
+                <div class="result-card">
+                    <h3><i class="fas fa-fingerprint"></i> CPF</h3>
+                    <p id="res-cpf">-</p>
+                </div>
+                
+                <div class="result-card">
+                    <h3><i class="fas fa-motorcycle"></i> MOTO</h3>
+                    <p id="res-moto">-</p>
+                </div>
+                
+                <div class="result-card">
+                    <h3><i class="fas fa-tag"></i> VALOR DO BEM</h3>
+                    <p class="valor" id="res-valor">-</p>
+                </div>
+                
+                <div class="result-card">
+                    <h3><i class="fas fa-hand-holding-usd"></i> LANCE INICIAL</h3>
+                    <p class="valor" id="res-lance">-</p>
+                </div>
+                
+                
+<div class="result-card">
+    <h3><i class="fas fa-wallet"></i> ENTRADA</h3>
+    <p class="valor" id="res-entrada">-</p>
+</div>
+<div class="result-card">
+    <h3><i class="fas fa-coins"></i> CRÉDITO BRUTO</h3>
+    <p class="valor" id="res-credito">-</p>
+</div>
+<div class="result-card">
+    <h3><i class="fas fa-money-bill-wave"></i> PARCELA</h3>
+    <p class="valor" id="res-parcela">-</p>
+</div>
+
+                <div class="result-card">
+                    <h3><i class="fas fa-percentage"></i> PROB. APROVAÇÃO</h3>
+                    <p class="aprovacao" id="res-aprovacao">-</p>
+                </div>
+            </div>
+            
+            <button id="nova-simulacao">
+                <i class="fas fa-sync-alt"></i> NOVA SIMULAÇÃO
+            </button>
+        </div>
+        
+        <div class="footer">
+            © 2023 ANALYTIC - Tecnologia em Simulações Financeiras | Todos os direitos reservados
+        </div>
+    </div>
+
+    <script>
+        // Elementos DOM
+        const formulario = document.getElementById('formulario');
+        const processamento = document.getElementById('processamento');
+        const resultado = document.getElementById('resultado');
+        const barraProgresso = document.getElementById('barra');
+        const contador = document.getElementById('contador');
+        const mensagem = document.getElementById('mensagem');
+        const btnSimular = document.getElementById('btn-simular');
+        const btnNovaSimulacao = document.getElementById('nova-simulacao');
+        const brandBtns = document.querySelectorAll('.brand-btn');
+        const motoSelect = document.getElementById('moto');
+        const motoGroups = document.querySelectorAll('.moto-group');
+        
+        // Criar efeito de partículas
+        function criarParticulas() {
+            const container = document.getElementById('particles');
+            const particleCount = 100;
+            
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.classList.add('particle');
+                
+                // Posição aleatória
+                const posX = Math.random() * 100;
+                const posY = Math.random() * 100;
+                particle.style.left = `${posX}%`;
+                particle.style.top = `${posY}%`;
+                
+                // Tamanho aleatório
+                const size = Math.random() * 3 + 1;
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                
+                // Animação
+                const animationDuration = Math.random() * 10 + 5;
+                particle.style.animation = `float ${animationDuration}s infinite ease-in-out`;
+                particle.style.animationDelay = `${Math.random() * 5}s`;
+                
+                container.appendChild(particle);
+            }
+        }
+        
+        // Máscara CPF
+        document.getElementById('cpf').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length > 11) value = value.slice(0, 11);
+            
+            value = value.replace(/(\d{3})(\d)/, '$1.$2');
+            value = value.replace(/(\d{3})(\d)/, '$1.$2');
+            value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+            
+            e.target.value = value;
+        });
+        
+        // Filtro de marcas
+        brandBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Ativar botão clicado
+                brandBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                const brand = btn.dataset.brand;
+                
+                // Mostrar todos ou filtrar por marca
+                if (brand === 'all') {
+                    motoGroups.forEach(group => group.style.display = 'block');
+                } else {
+                    motoGroups.forEach(group => {
+                        group.style.display = group.dataset.brand === brand ? 'block' : 'none';
+                    });
+                }
+            });
+        });
+        
+        // Submit formulário
+        btnSimular.addEventListener('click', function(e) {
+            // Validação simples
+            const nome = document.getElementById('nome').value;
+            const cpf = document.getElementById('cpf').value;
+            const moto = document.getElementById('moto').value;
+            const valor = document.getElementById('valor').value;
+            const lance = document.getElementById('lance').value;
+            const aprovacao = document.getElementById('aprovacao').value;
+            
+            if (!nome || !cpf || !moto || !valor || !lance || !aprovacao) {
+                alert('Por favor, preencha todos os campos!');
+                return;
+            }
+            
+            if (parseFloat(lance) > parseFloat(valor)) {
+                alert('O valor do lance não pode ser maior que o valor da moto!');
+                return;
+            }
+            
+            if (parseInt(aprovacao) < 0 || parseInt(aprovacao) > 100) {
+                alert('A porcentagem de aprovação deve estar entre 0 e 100!');
+                return;
+            }
+            
+            formulario.classList.remove('ativa');
+            processamento.classList.add('ativa');
+            
+            // Mensagens aleatórias
+            const mensagens = [
+                "Verificando score de crédito...",
+                "Conferindo documentação...",
+                "Analisando histórico financeiro...",
+                "Calculando risco de operação...",
+                "Consultando base do SERASA...",
+                "Processando garantias...",
+                "Validando dados pessoais...",
+                "Simulando condições de pagamento...",
+                "Comparando com padrões de mercado...",
+                "Gerando relatório de aprovação..."
+            ];
+            
+            let progresso = 0;
+            const intervalo = setInterval(() => {
+                progresso += 1;
+                barraProgresso.style.width = `${progresso}%`;
+                contador.textContent = `${progresso}%`;
+                
+                // Mudar mensagem a cada 15%
+                if (progresso % 15 === 0) {
+                    mensagem.textContent = mensagens[Math.floor(Math.random() * mensagens.length)];
+                }
+                
+                // Finalizar em 100%
+                if (progresso >= 100) {
+                    clearInterval(intervalo);
+                    setTimeout(mostrarResultado, 800);
+                }
+            }, 30);
+        });
+        
+        function mostrarResultado() {
+            // Preencher resultados
+            document.getElementById('res-nome').textContent = document.getElementById('nome').value;
+            document.getElementById('res-cpf').textContent = document.getElementById('cpf').value;
+            document.getElementById('res-moto').textContent = document.getElementById('moto').value;
+            document.getElementById('res-valor').textContent = 'R$ ' + 
+                parseFloat(document.getElementById('valor').value).toLocaleString('pt-BR', {minimumFractionDigits: 2});
+            document.getElementById('res-lance').textContent = 'R$ ' + 
+                parseFloat(document.getElementById('lance').value).toLocaleString('pt-BR', {minimumFractionDigits: 2});
+            
+    document.getElementById('res-entrada').textContent = 'R$ ' + 
+        parseFloat(document.getElementById('entrada').value || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2});
+    document.getElementById('res-credito').textContent = 'R$ ' + 
+        parseFloat(document.getElementById('credito').value || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2});
+    document.getElementById('res-parcela').textContent = 'R$ ' + 
+        parseFloat(document.getElementById('parcela').value || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2});
+
+            document.getElementById('res-aprovacao').textContent = 
+                document.getElementById('aprovacao').value + '%';
+            
+            processamento.classList.remove('ativa');
+            resultado.classList.add('ativa');
+        }
+        
+        // Nova simulação
+        btnNovaSimulacao.addEventListener('click', function() {
+            resultado.classList.remove('ativa');
+            formulario.classList.add('ativa');
+            document.getElementById('simulacao-form').reset();
+            barraProgresso.style.width = '0%';
+            contador.textContent = '0%';
+            brandBtns[0].click(); // Resetar para mostrar todas
+        });
+        
+        // Inicializar partículas
+        criarParticulas();
+    </script>
+</body>
+</html>
